@@ -12,9 +12,9 @@ import canopy
 import canopy/runtime/terminal/input
 import canopy/ui/animation/index as animation
 import common, recording, inline_demo
-import widgets_page, charts_page, text_page, motion_page, jobs_page, input_page
+import widgets_page, charts_page, text_page, motion_page, jobs_page, input_page, controls_page
 
-const pageNames = ["Widgets", "Charts", "Text & color", "Motion", "Jobs", "Input"]
+const pageNames = ["Widgets", "Charts", "Text & color", "Motion", "Jobs", "Input", "Controls"]
 
 var
   page = 0
@@ -32,7 +32,8 @@ proc pageHelp(): string =
   of 2: text_page.help
   of 3: motion_page.help
   of 4: jobs_page.help
-  else: input_page.help
+  of 5: input_page.help
+  else: controls_page.help
 
 proc renderPage(frame: var Frame, area: Rect) =
   case page
@@ -41,7 +42,8 @@ proc renderPage(frame: var Frame, area: Rect) =
   of 2: text_page.render(frame, area)
   of 3: motion_page.render(frame, area)
   of 4: jobs_page.render(frame, area)
-  else: input_page.render(frame, area)
+  of 5: input_page.render(frame, area)
+  else: controls_page.render(frame, area)
 
 proc handlePage(event: input.Event): bool =
   case page
@@ -50,7 +52,8 @@ proc handlePage(event: input.Event): bool =
   of 2: text_page.handle(event)
   of 3: motion_page.handle(event)
   of 4: jobs_page.handle(event)
-  else: input_page.handle(event)
+  of 5: input_page.handle(event)
+  else: controls_page.handle(event)
 
 proc updatePages(now: MonoTime): int =
   result = -1
@@ -60,6 +63,7 @@ proc updatePages(now: MonoTime): int =
   result.wakeWithin(motion_page.update(now, page == 3))
   result.wakeWithin(jobs_page.update(now, page == 4))
   result.wakeWithin(input_page.update(now, page == 5))
+  result.wakeWithin(controls_page.update(now, page == 6))
 
 proc showcase(frame: var Frame) =
   # Header, a breathing row, the page, then one row of key hints.
@@ -94,7 +98,7 @@ proc showcase(frame: var Frame) =
   renderPage(frame, contentArea)
   if pageTransition != nil: pageTransition.apply(frame.buffer[], contentArea)
 
-  let global = initLine(keyHints("Tab/1-6: page · t: theme · m: motion · q: quit") &
+  let global = initLine(keyHints("Tab/1-7: page · t: theme · m: motion · q: quit") &
     @[initSpan(" ", dim)]).rightAligned()
   let footer = horizontal([fill(), length(global.width)]).split(areas[3])
   frame.renderWidget(initLine(@[initSpan(" ")] & keyHints(pageHelp())), footer[0])
@@ -114,6 +118,8 @@ proc handle(event: input.Event): bool =
   ## Returns false when the app should exit.
   result = true
   input_page.record(event)
+  # The controls page sees events first: its fields and dialogs own q, Escape and digits.
+  if page == 6 and handlePage(event): return
   if event.isPress and (event.key.text == "q" or event.key.code == KeyCode.Escape or
       (event.key.text == "c" and KeyModifier.Control in event.key.modifiers)):
     return false
@@ -121,14 +127,14 @@ proc handle(event: input.Event): bool =
   if click.isSome:
     for i, hit in tabHits:
       if hit.contains(click.get): showPage(i); return
-  if handlePage(event) or not event.isPress: return
+  if (page != 6 and handlePage(event)) or not event.isPress: return
   case event.key.code
   of KeyCode.Tab:
     showPage(page + (if KeyModifier.Shift in event.key.modifiers: -1 else: 1))
   of KeyCode.BackTab: showPage(page - 1)
   else:
     case event.key.text
-    of "1", "2", "3", "4", "5", "6": showPage(ord(event.key.text[0]) - ord('1'))
+    of "1", "2", "3", "4", "5", "6", "7": showPage(ord(event.key.text[0]) - ord('1'))
     of "t": themeIndex = (themeIndex + 1) mod themeNames.len
     of "m": animator.reducedMotion = not animator.reducedMotion
     else: discard

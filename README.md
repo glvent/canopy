@@ -14,8 +14,10 @@ nimble examples
 
 Import `canopy/ui/animation/index` for the native [animation toolkit](docs/animation.md): typed tweens, easing, timelines, springs, buffer transitions and shared reduced motion.
 
+Import `canopy/ui/controls/index` for the opt-in [interaction layer](docs/interaction.md): focus management, configurable keymaps, Unicode text input and text areas, forms, a command palette, a tree and dialogs. It is a Canopy extension, not part of Ratatui compatibility, and applications still own every state value and the event loop.
+
 See the [milestone checklist](docs/planning/milestones.md), [shared interfaces](docs/interfaces.md), [reference generation](docs/reference.md), [upstream inventory](docs/planning/upstream-inventory.md), and [validation record](docs/validation/README.md). API documentation: `nimble docs`.
 
-Start with the [usage guide](docs/guide.md) and [Ratatui migration guide](docs/migration.md). Run `nim r examples/showcase/showcase.nim` in a terminal of at least 80×24 for an interactive tour of every widget, styling, layout, animation and input feature. `nimble bench` runs the recorded benchmark workloads.
+Start with the [usage guide](docs/guide.md) and [Ratatui migration guide](docs/migration.md). Run `nim r examples/showcase/showcase.nim` in a terminal of at least 80×24 for an interactive tour of every widget, styling, layout, animation, input and interactive control feature. `nimble bench` runs the recorded benchmark workloads.
 
 Canopy is MIT licensed. Ported algorithms and data retain their upstream notices under `licenses/`; Nimble installations include `canopy/THIRD_PARTY_NOTICES.txt`.
