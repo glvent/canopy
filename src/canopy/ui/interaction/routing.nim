@@ -87,7 +87,8 @@ proc route*(fm: var FocusManager, event: Event): Route =
           result.focusChanged = fm.focus(hit.get.id)
       else: fm.setCapture(none(ControlId))
     of MouseEventKind.Drag, MouseEventKind.Up:
-      target = fm.captured
+      # After a resize the captured control's geometry is unknown until the next frame.
+      target = if fm.geometryStale: none(ControlId) else: fm.captured
       if target.isNone and hit.isSome and hit.get.enabled: target = some(hit.get.id)
       if event.mouse.kind == MouseEventKind.Up: fm.setCapture(none(ControlId))
     else:

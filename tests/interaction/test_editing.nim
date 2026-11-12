@@ -80,6 +80,19 @@ suite "editor":
     while e.redo(): discard
     check e.text == "hello worlXPASTEyd"
 
+  test "an insertion that merges with the next cluster leaves the cursor on a boundary":
+    var e = initEditor("\u0301x")
+    e.moveTo(pos(0, 0))
+    e.typeText("a")
+    check e.text == "a\u0301x"
+    check e.cursor == pos(0, 3)
+    e.backspace()
+    check e.text == "x"
+    e.undo(); e.undo()
+    check e.text == "\u0301x"
+    e.redo()
+    check e.cursor == pos(0, 3)
+
   test "consecutive deletions merge in one direction":
     var e = initEditor("abcdef")
     e.backspace(); e.backspace()

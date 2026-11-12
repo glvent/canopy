@@ -294,6 +294,8 @@ proc handle*(state: var PaletteState, registry: CommandRegistry, fm: var FocusMa
         state.selected = clamp(state.selected+1, 0, max(0, state.matches.high))
         return consumed()
       of MouseEventKind.Down:
+        # The results list is never a typing target: keep the query focused.
+        discard fm.focus(state.query.id)
         let i = state.offset+m.row-state.area.y
         if m.button != some(MouseButton.Left) or i notin 0..state.matches.high:
           return consumed(false)

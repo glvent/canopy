@@ -119,3 +119,18 @@ suite "routing":
     r.add emitted(actionId("x"), "subject", changed = true)
     check r.consumed and r.redraw and r.changed and r.action == some(actionId("x")) and
       r.subject == "subject"
+
+suite "pointer capture after resize":
+  test "a release after resize does not reach the captured control":
+    var fm = initFocusManager()
+    fm.beginFrame()
+    fm.register(controlId("a"), initRect(0, 0, 10, 1))
+    discard fm.endFrame()
+    let down = Event(kind: EventKind.Mouse, mouse: MouseEvent(kind: MouseEventKind.Down,
+      button: some(MouseButton.Left), column: 1, row: 0))
+    check fm.route(down).target == some(controlId("a"))
+    discard fm.route(Event(kind: EventKind.Resize, width: 5, height: 5))
+    var up = down
+    up.mouse.kind = MouseEventKind.Up
+    check fm.route(up).target.isNone
+    check fm.captured.isNone

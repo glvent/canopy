@@ -9,11 +9,11 @@ when defined(posix):
   import canopy/ui/controls/index
 
   when defined(macosx):
-    proc openpty(master, slave: ptr cint, name: pointer, term: ptr Termios,
-        size: ptr IOctl_WinSize): cint {.importc, header: "<util.h>".}
+    proc openpty(master, slave: ptr cint, name: pointer, term: pointer,
+        size: pointer): cint {.importc, header: "<util.h>".}
   else:
-    proc openpty(master, slave: ptr cint, name: pointer, term: ptr Termios,
-        size: ptr IOctl_WinSize): cint {.importc, header: "<pty.h>".}
+    proc openpty(master, slave: ptr cint, name: pointer, term: pointer,
+        size: pointer): cint {.importc, header: "<pty.h>".}
 
   type Pty = object
     master, slave: File

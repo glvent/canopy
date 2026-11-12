@@ -280,6 +280,14 @@ proc replaceRange(e: var Editor, a, b: TextPos, text: string): TextPos =
   e.lines[a.line..b.line] = replacement
   inc e.revision
 
+func settle(e: Editor, p: TextPos): TextPos =
+  ## Moves `p` forward to the next cluster boundary. An insertion can merge with the cluster
+  ## after it (a letter before a combining mark), leaving its raw end inside that cluster.
+  let bounds = boundaries(e.lines[p.line])
+  for b in bounds:
+    if b >= p.col: return pos(p.line, b)
+  pos(p.line, e.lines[p.line].len)
+
 proc setCursorRaw(e: var Editor, p: TextPos, extend: bool) =
   e.cursor = p
   if not extend: e.anchor = p
@@ -298,8 +306,8 @@ proc applyEdit(e: var Editor, kind: EditKind, a, b: TextPos, text: string): bool
   let before = e.cursor
   let beforeAnchor = e.anchor
   let after = e.replaceRange(a, b, text)
-  e.cursor = after
-  e.anchor = after
+  e.cursor = e.settle(after)
+  e.anchor = e.cursor
   e.preferred = -1
   if not e.sealed and e.undoStack.len > 0:
     var last = addr e.undoStack[^1]
@@ -488,8 +496,8 @@ proc redo*(e: var Editor): bool {.discardable.} =
   if e.redoStack.len == 0: return false
   let edit = e.redoStack.pop()
   discard e.replaceRange(edit.start, endOf(edit.start, edit.removed), edit.inserted)
-  e.cursor = edit.after
-  e.anchor = edit.after
+  e.cursor = e.settle(edit.after)
+  e.anchor = e.cursor
   e.undoStack.add edit
   e.sealed = true
   e.preferred = -1

@@ -117,6 +117,13 @@ suite "form":
       if f.value(id("a")) != f.value(id("b")):
         result.add FormIssue(field: some(id("b")), message: "Must match")
         result.add FormIssue(message: "Fix the highlighted fields")
+    form.addField(id("c"), "C", validators = [minGraphemes(3)])
+    form.fields[2].touched = true # blurred once
+    fm.focus(id("c"))
+    discard form.handle(fm, Route(event: ch("z"), target: some(id("c"))))
+    check form.value(id("c")) == "z"
+    check form.fields[2].error == "" # OnSubmit waits for a submit attempt
+    form.setValue(id("c"), "zzz")
     form.setValue(id("a"), "x")
     check not form.submitForm(fm)
     check form.fields[1].error == "Must match" and form.formErrors.len == 1
@@ -182,6 +189,19 @@ suite "palette":
     discard term.draw(app)
     check app.dispatch(mouse(MouseEventKind.Down, 0, 15)).action == some(PaletteDismiss)
 
+  test "clicking a disabled result keeps typing in the query":
+    var term = initTerminal(initTestBackend(60, 16))
+    var app = initApp()
+    discard term.draw(app)
+    app.palette.open(app.fm)
+    app.typeText("theme")
+    discard term.draw(app)
+    let rows = app.fm.areaOf(app.palette.resultsId).get
+    check app.dispatch(mouse(MouseEventKind.Down, rows.x+3, rows.y)).action.isNone
+    check app.fm.focused == some(app.palette.query.id)
+    app.typeText("x")
+    check app.palette.query.text == "themex"
+
 suite "tree":
   test "keyboard navigation, expansion and activation":
     var term = initTerminal(initTestBackend(60, 16))
@@ -229,6 +249,23 @@ suite "tree":
     items.setLen(0)
     state.sync(items)
     check state.selected.isNone
+
+  test "wheel scrolling survives rendering until the selection moves":
+    var state = initTreeState(id("t"))
+    var items: seq[TreeItem]
+    for i in 0..29: items.add treeItem("n" & $i, "node " & $i)
+    var buf = initBuffer(initRect(0, 0, 20, 5))
+    initTreeView().render(buf.area, buf, state, items)
+    var fm = initFocusManager()
+    fm.beginFrame(); fm.register(state.id, buf.area); discard fm.endFrame()
+    discard state.handle(items, fm.route(mouse(MouseEventKind.ScrollDown, 1, 1, none(MouseButton))))
+    initTreeView().render(buf.area, buf, state, items)
+    check state.offset == 3
+    check buf.rowText(0).strip == "node 3"
+    fm.focus(state.id)
+    discard state.handle(items, fm.route(key(KeyCode.Down)))
+    initTreeView().render(buf.area, buf, state, items)
+    check state.offset == 1
 
   test "click toggles on the expander and activates a selected row":
     var term = initTerminal(initTestBackend(60, 16))

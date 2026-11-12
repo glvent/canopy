@@ -180,9 +180,11 @@ proc resetForm*(form: var FormState) =
   form.submitAttempted = false
 
 proc revalidate(form: var FormState, i: int) =
-  let f = form.fields[i]
-  if form.timing == ValidationTiming.OnChange or f.touched or form.submitAttempted:
-    form.validateField(i)
+  let due = case form.timing
+    of ValidationTiming.OnChange: true
+    of ValidationTiming.OnBlur: form.fields[i].touched or form.submitAttempted
+    of ValidationTiming.OnSubmit: form.submitAttempted
+  if due: form.validateField(i)
 
 proc syncFocus*(form: var FormState, fm: FocusManager) =
   ## Marks the field focus left as touched and validates it for `OnBlur`. Called by

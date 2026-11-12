@@ -27,6 +27,7 @@ type
     area*: Rect ## Rows area of the last render.
     rows: seq[TreeRow]
     selectedIndex: int
+    reveal: bool ## Scroll to the selection at the next render; wheel scrolling clears it.
     markerWidth, indent: int
   TreeView* = object
     theme*: ControlTheme
@@ -37,7 +38,7 @@ func treeItem*(id: string, label: string, children: openArray[TreeItem] = []): T
   TreeItem(id: controlId(id), label: label, children: @children)
 
 func initTreeState*(id: ControlId, enabled = true): TreeState =
-  TreeState(id: id, enabled: enabled)
+  TreeState(id: id, enabled: enabled, reveal: true)
 
 func initTreeView*(theme = defaultTheme()): TreeView = TreeView(theme: theme, indent: 2)
 func withBlock*(w: TreeView, b: Block): TreeView =
@@ -84,6 +85,8 @@ proc sync*(state: var TreeState, items: openArray[TreeItem]) =
         index = state.rowIndex(path[i])
         if index >= 0: break
   if index < 0: index = clamp(state.selectedIndex, 0, state.rows.high)
+  if index != state.selectedIndex or state.selected != some(state.rows[index].id):
+    state.reveal = true
   state.selectedIndex = index
   state.selected = some(state.rows[index].id)
 
@@ -91,6 +94,7 @@ proc select(state: var TreeState, index: int) =
   if state.rows.len == 0: return
   state.selectedIndex = clamp(index, 0, state.rows.high)
   state.selected = some(state.rows[state.selectedIndex].id)
+  state.reveal = true
 
 proc expand*(state: var TreeState, id: ControlId) = state.expanded.incl id
 proc collapse*(state: var TreeState, id: ControlId) = state.expanded.excl id
@@ -118,7 +122,10 @@ proc render*(w: TreeView, area: Rect, buf: var Buffer, state: var TreeState,
   state.area = inner
   inner = inner.intersection(buf.area)
   if inner.isEmpty: return
-  state.ensureVisible(inner.height)
+  if state.reveal:
+    state.ensureVisible(inner.height)
+    state.reveal = false
+  state.offset = clamp(state.offset, 0, max(0, state.rows.len-inner.height))
   let markerWidth = displayWidth(w.theme.marker)
   state.markerWidth = markerWidth
   state.indent = w.indent
