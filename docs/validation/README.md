@@ -1,5 +1,8 @@
 # Validation record
 
+The interaction extension's native CI matrix, PTY, Windows console and
+benchmark results are in [interaction validation](interaction.md).
+
 The animation extension adds two test files and a seventh example. Its executed
 compiler/memory-manager matrix, PTY checks, benchmarks and Windows boundary are
 recorded separately in [animation validation](animation.md). The
