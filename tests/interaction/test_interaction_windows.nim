@@ -116,7 +116,7 @@ when defined(windows):
       check fm.focused == some(name.id)
       # Typed text including Latin-1 and CJK, then DEL as Backspace, then Tab to the next field.
       console.inject("Zoë 界x\x7f\tok")
-      for e in source.pollAll(9): discard dispatch(e)
+      for e in source.pollAll(10): discard dispatch(e)
       check name.text == "Zoë 界"
       check other.text == "ok"
       check fm.focused == some(other.id)
