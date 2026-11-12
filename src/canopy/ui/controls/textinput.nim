@@ -40,18 +40,23 @@ proc insertText*(s: var TextInputState, text: string): bool {.discardable.} =
 
 func initTextInput*(placeholder = "", theme = defaultTheme()): TextInput =
   TextInput(placeholder: placeholder, theme: theme, scrollMargin: 2)
+
 func withPlaceholder*(w: TextInput, text: string): TextInput =
   result = w
   result.placeholder = text
+
 func withTheme*(w: TextInput, theme: ControlTheme): TextInput =
   result = w
   result.theme = theme
+
 func withInvalid*(w: TextInput, invalid = true): TextInput =
   result = w
   result.invalid = invalid
+
 func withBlock*(w: TextInput, b: Block): TextInput =
   result = w
   result.blk = some(b)
+
 func withScrollMargin*(w: TextInput, margin: int): TextInput =
   result = w
   result.scrollMargin = max(0, margin)

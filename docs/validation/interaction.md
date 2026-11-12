@@ -55,6 +55,20 @@ These checks ran on 2026-11-11 on macOS 27.3 (Apple M4), Nim 2.2.10:
   Unicode typing, Tab with on-blur validation, Ctrl+P with a fuzzy query,
   executing a command, a confirmation dialog, Escape back out, and `q` to
   quit. The terminal was restored on exit.
+- `python3 tools/animation/pty_smoke.py build/2.2.10-orc` passed against the
+  final showcase binary. This optional harness needs Python. Before this
+  branch it already failed on `main`, because expectations went stale in the
+  #5/#7 restyle; those expectations are now updated. It now also covers the
+  Controls page: Enter to focus, Unicode typing, blur validation, the rule
+  that focused fields own `q` and digits, the Ctrl+P palette, a confirmation
+  dialog, Escape, and a click on a tree expander. Running it also exposed a
+  regression from the seventh tab: at 120 columns the header dropped every
+  stat, including the theme and reduced-motion state. The header now drops
+  stats by priority and then shortens its brand.
+- `tools/package_smoke.nim` now edits and renders a `TextInput` too. It passed
+  against an offline `nimble install` into an isolated Nimble directory,
+  compiled with `--skipParentCfg --skipUserCfg`. The compiler resolved
+  `canopy/ui/controls` from the installed package, not the repository.
 - An independent review found five defects. All are fixed, each with a
   regression test that failed before the fix: a cursor left inside a cluster
   after typing before a combining mark, palette result clicks stealing query

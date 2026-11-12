@@ -21,6 +21,7 @@ template measure(name: string, count: int, body: untyped) =
       "; us_per_iteration=", (milliseconds * 1000 / float64(iterations)).formatFloat(ffDecimal, 3)
 
 # 200 registrations per frame plus Tab routing and a click hit test.
+
 var ids: seq[ControlId]
 for i in 0..<200: ids.add controlId("c" & $i)
 var fm = initFocusManager()
@@ -71,12 +72,15 @@ measure("palette rank (2000 commands, query \"otf\")", 200):
   checksum += uint64(registry.rank("otf").len)
 
 # Flattening a fully expanded tree of 10000 nodes.
+
 proc build(depth, width: int, prefix: string): seq[TreeItem] =
   for i in 0..<width:
     let id = prefix & "." & $i
     result.add treeItem(id, "node " & id, if depth > 0: build(depth-1, width, id) else: @[])
+
 let items = build(3, 10, "n")
 var tree = initTreeState(controlId("tree"))
+
 proc expandAll(list: openArray[TreeItem]) =
   for item in list:
     if item.children.len > 0:

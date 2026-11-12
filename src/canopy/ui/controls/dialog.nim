@@ -57,15 +57,19 @@ proc close*(s: var DialogState, fm: var FocusManager) =
 
 func initDialog*(title: string, body: Text, theme = defaultTheme()): Dialog =
   Dialog(title: title, body: body, theme: theme, backdrop: true, reveal: 1.0)
+
 func initDialog*(title, body: string, theme = defaultTheme()): Dialog =
   initDialog(title, initText(body), theme)
+
 func withSize*(d: Dialog, width, height: int): Dialog =
   result = d
   result.width = width
   result.height = height
+
 func withReveal*(d: Dialog, progress: float): Dialog =
   result = d
   result.reveal = clamp(progress, 0.0, 1.0)
+
 func withBackdrop*(d: Dialog, enabled: bool): Dialog =
   result = d
   result.backdrop = enabled

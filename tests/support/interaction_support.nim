@@ -22,6 +22,7 @@ proc rows*(buf: Buffer): seq[string] =
 proc key*(code: KeyCode, mods: KeyModifiers = {}): Event = keyEvent(code, modifiers = mods)
 proc ch*(text: string, mods: KeyModifiers = {}): Event =
   keyEvent(KeyCode.Character, text, mods)
+
 proc paste*(text: string): Event = Event(kind: EventKind.Paste, text: text)
 proc mouse*(kind: MouseEventKind, x, y: int, button = some(MouseButton.Left),
     mods: KeyModifiers = {}): Event =

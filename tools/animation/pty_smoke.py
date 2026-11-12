@@ -70,6 +70,15 @@ class Session:
         # Assertions use ASCII UI labels; Unicode cell correctness is tested in Nim.
         return "\n".join("".join(row).rstrip() for row in cells)
 
+    def expect_compact(self, text, duration=3):
+        """Like `expect`, ignoring spaces: this screen model gives wide glyphs one cell."""
+        end = time.monotonic() + duration
+        while time.monotonic() < end:
+            self.pump(0.05)
+            if text.replace(" ", "") in self.screen().replace(" ", ""):
+                return
+        raise AssertionError(f"{self.name}: {text!r} missing:\n{self.screen()}")
+
     def expect(self, text, duration=3):
         end = time.monotonic() + duration
         while time.monotonic() < end:
@@ -125,13 +134,13 @@ try:
     app.send(b"3")
     app.expect("Unicode widths")
     app.send(b"4")
-    app.expect("Transition effect")
+    app.expect("Timeline · spring")
     app.send(b"\x1b[D")
     app.expect("Slide")
     app.send(b"d")
     app.expect("Direction: Right")
     app.send(b"m")
-    app.expect("motion reduced")
+    app.expect("reduced motion")
     app.idle()
     app.send(b"5")
     app.expect("Settings")
@@ -144,22 +153,54 @@ try:
     app.send(b"x")
     app.expect("Status: Ready")
     app.send(b"t")
-    app.expect("theme Green")
+    app.expect("Magenta · reduced motion")
     app.send(b"6")
     app.expect("Event log")
     app.send(b"z")
     app.expect('"z"')
-    app.send(b"\x1b[<0;5;2M")  # First page tab.
+    tab = app.screen().splitlines()[0].index("1 Widgets") + 1  # 1-based SGR column.
+    app.send(b"\x1b[<0;%d;1M" % tab)  # Press the first page tab.
     app.expect("List + Scrollbar")
+    # Controls: keyboard entry, Unicode typing, blur validation, palette, dialog and exit.
+    app.send(b"7")
+    app.expect("Press Enter or click a field")
+    app.send(b"\r")
+    app.expect("Focus: name")
+    app.send("Zoë 世界".encode())
+    app.expect_compact("Zoë 世界")  # The help text has a comma, so only the field matches.
+    app.send(b"\tbad\t")
+    app.expect("✗ Use an address like")
+    app.send(b"q1")  # Focused fields own plain characters, so neither quits nor switches page.
+    app.expect("Password")
+    assert app.child.poll() is None, "q in a focused field quit the showcase"
+    app.send(b"\x10")  # Ctrl+P opens the palette over the page.
+    app.expect("Commands")
+    app.send(b"reset")
+    app.expect("Reset form")
+    app.send(b"\r")
+    app.expect("All fields return to their initial values.")
+    app.send(b"\r")  # Reset is the focused button.
+    app.expect("Form reset")
+    assert "Zoë世界" not in app.screen().replace(" ", ""), "reset kept the old name"
+    app.send(b"\x1b")  # Escape leaves the controls; page keys work again.
+    app.expect("Press Enter or click a field")
+    row = next(i for i, line in enumerate(app.screen().splitlines()) if "▸ docs" in line)
+    column = app.screen().splitlines()[row].index("▸ docs") + 1
+    app.send(b"\x1b[<0;%d;%dM\x1b[<0;%d;%dm" % (column, row + 1, column, row + 1))
+    app.expect("▾ docs")  # A click on the expander toggles it and focuses the tree.
+    app.expect("Focus: files")
+    app.send(b"\x1b")
+    app.send(b"6")
+    app.expect("Event log")
     app.resize(12, 5)
     app.pump(0.2)
     assert app.child.poll() is None
     app.resize(120, 40)
-    app.expect("Canopy showcase")
+    app.expect("Magenta · reduced motion")
     app.idle()
 finally:
     app.close()
-print("PASS showcase: pages, selection, popup, live data, transitions, jobs, theme, reduced motion, input log, mouse, idle, resize, cleanup")
+print("PASS showcase: pages, selection, popup, live data, transitions, jobs, theme, reduced motion, input log, mouse, controls, palette, dialog, idle, resize, cleanup")
 
 inline = Session("showcase", "--inline")
 try:

@@ -283,6 +283,7 @@ func conflicts*(keymap: Keymap, contexts: openArray[string]):
     if group.len > 1: result.add (binding.chord, group)
 
 # Standard actions used by the built-in controls.
+
 const
   FocusNext* = ActionId("focus.next")
   FocusPrevious* = ActionId("focus.previous")

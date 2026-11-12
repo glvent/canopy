@@ -222,6 +222,7 @@ func len*(e: Editor): int =
   ## Bytes in the text, counting line breaks.
   result = e.lines.len-1
   for line in e.lines: result += line.len
+
 func isEmpty*(e: Editor): bool = e.lines.len == 1 and e.lines[0].len == 0
 func cursor*(e: Editor): TextPos = e.cursor
 func anchor*(e: Editor): TextPos = e.anchor
@@ -231,6 +232,7 @@ func multiline*(e: Editor): bool = e.multiline
 func hasSelection*(e: Editor): bool = e.cursor != e.anchor
 func selection*(e: Editor): tuple[first, last: TextPos] =
   if e.anchor < e.cursor: (e.anchor, e.cursor) else: (e.cursor, e.anchor)
+
 func canUndo*(e: Editor): bool = e.undoStack.len > 0
 func canRedo*(e: Editor): bool = e.redoStack.len > 0
 func undoDepth*(e: Editor): int = e.undoStack.len
@@ -446,6 +448,7 @@ proc moveWordRight*(e: var Editor, extend = false) = e.moveTo(e.wordRightPos(e.c
 proc moveHome*(e: var Editor, extend = false) = e.moveTo(pos(e.cursor.line, 0), extend)
 proc moveEnd*(e: var Editor, extend = false) =
   e.moveTo(pos(e.cursor.line, e.lines[e.cursor.line].len), extend)
+
 proc moveDocumentStart*(e: var Editor, extend = false) = e.moveTo(pos(0, 0), extend)
 proc moveDocumentEnd*(e: var Editor, extend = false) =
   e.moveTo(pos(e.lines.high, e.lines[^1].len), extend)

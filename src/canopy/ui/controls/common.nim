@@ -92,8 +92,10 @@ type
 
 func initButtonState*(id: ControlId, enabled = true): ButtonState =
   ButtonState(id: id, enabled: enabled)
+
 func initButton*(label: string, theme = defaultTheme()): Button =
   Button(label: label, theme: theme)
+
 func width*(b: Button): int = displayWidth(b.label)+4
 
 proc render*(b: Button, area: Rect, buf: var Buffer, state: var ButtonState, focused = false) =

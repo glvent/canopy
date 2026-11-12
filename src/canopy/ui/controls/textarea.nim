@@ -34,6 +34,7 @@ func text*(s: TextAreaState): string = s.editor.text
 proc setText*(s: var TextAreaState, text: string) =
   s.editor.setText(text)
   s.reveal = true
+
 proc insertText*(s: var TextAreaState, text: string): bool {.discardable.} =
   if s.readOnly: return false
   s.reveal = true
@@ -41,15 +42,19 @@ proc insertText*(s: var TextAreaState, text: string): bool {.discardable.} =
 
 func initTextArea*(placeholder = "", theme = defaultTheme()): TextArea =
   TextArea(placeholder: placeholder, theme: theme, scrollMargin: 2)
+
 func withPlaceholder*(w: TextArea, text: string): TextArea =
   result = w
   result.placeholder = text
+
 func withTheme*(w: TextArea, theme: ControlTheme): TextArea =
   result = w
   result.theme = theme
+
 func withInvalid*(w: TextArea, invalid = true): TextArea =
   result = w
   result.invalid = invalid
+
 func withBlock*(w: TextArea, b: Block): TextArea =
   result = w
   result.blk = some(b)

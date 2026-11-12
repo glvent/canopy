@@ -68,26 +68,37 @@ proc updatePages(now: MonoTime): int =
 proc showcase(frame: var Frame) =
   # Header, a breathing row, the page, then one row of key hints.
   let areas = vertical([length(1), length(1), fill(), length(1)]).split(frame.area)
-  let brand = initLine([initSpan(" ◆ ", accent().bold()), initSpan("Canopy", initStyle().bold()),
+  var brand = initLine([initSpan(" ◆ ", accent().bold()), initSpan("Canopy", initStyle().bold()),
     initSpan(" showcase  ", muted())])
   let dim = muted()
 
   let tabsWidth = pillsWidth(pageNames, numbered = true)
 
-  # Live stats sit on the right; drop the less useful ones when the row gets narrow.
-  var stats: seq[Span]
-  template stat(value, label: string) =
-    if stats.len > 0: stats.add(initSpan(" · ", dim))
-    stats.add(initSpan(value, accent()))
-    if label.len > 0: stats.add(initSpan(" " & label, dim))
-  let room = areas[0].width - brand.width - tabsWidth - 2
-  stat($cellUpdates, "cells")
-  if room >= 40: stat($frames, "frames")
-  if room >= 28: stat($screen.width & "×" & $screen.height, "")
-  stat(themeNames[themeIndex], if animator.reducedMotion: "· reduced motion" else: "")
-  stats.add(initSpan(" "))
-  var statsLine = initLine(stats).rightAligned()
-  if statsLine.width > room: statsLine = initLine("")
+  # Live stats sit on the right. When the row gets narrow, the least useful ones go first;
+  # the theme and motion state stay longest because they answer the t and m keys.
+  var room = areas[0].width - brand.width - tabsWidth - 2
+  let candidates = [($cellUpdates, "cells", 1), ($frames, "frames", 3),
+    ($screen.width & "×" & $screen.height, "", 2),
+    (themeNames[themeIndex], if animator.reducedMotion: "· reduced motion" else: "", 0)]
+  proc statsFor(dropRank: int): Line =
+    var spans: seq[Span]
+    for (value, label, rank) in candidates:
+      if rank >= dropRank: continue
+      if spans.len > 0: spans.add(initSpan(" · ", dim))
+      spans.add(initSpan(value, accent()))
+      if label.len > 0: spans.add(initSpan(" " & label, dim))
+    spans.add(initSpan(" "))
+    initLine(spans).rightAligned()
+  if statsFor(1).width > room:
+    # Keep the theme and motion state visible before the brand's subtitle.
+    brand = initLine([initSpan(" ◆ ", accent().bold()), initSpan("Canopy ", initStyle().bold())])
+    room = areas[0].width - brand.width - tabsWidth - 2
+  var statsLine = initLine("")
+  for dropRank in countdown(candidates.len, 1):
+    let line = statsFor(dropRank)
+    if line.width <= room:
+      statsLine = line
+      break
   let header = horizontal([length(brand.width), fill(), length(statsLine.width)]).split(areas[0])
   frame.renderWidget(brand, header[0])
   frame.renderWidget(statsLine, header[2])
