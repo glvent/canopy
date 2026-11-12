@@ -7,9 +7,9 @@ when defined(posix):
   import canopy/runtime/backends/ansi
 
   when defined(macosx):
-    proc openpty(master, slave: ptr cint, name: pointer, term: ptr Termios, size: ptr IOctl_WinSize): cint {.importc, header: "<util.h>".}
+    proc openpty(master, slave: ptr cint, name: pointer, term: pointer, size: pointer): cint {.importc, header: "<util.h>".}
   else:
-    proc openpty(master, slave: ptr cint, name: pointer, term: ptr Termios, size: ptr IOctl_WinSize): cint {.importc, header: "<pty.h>".}
+    proc openpty(master, slave: ptr cint, name: pointer, term: pointer, size: pointer): cint {.importc, header: "<pty.h>".}
   var TIOCSWINSZ {.importc, header: "<sys/ioctl.h>".}: culong
 
   type Pty = object
