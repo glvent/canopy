@@ -6,7 +6,7 @@ record lists only checks that actually ran on branch `claude/interaction-layer`.
 
 ## Native CI matrix
 
-GitHub Actions run 43131953551 (2026-11-12, commit `c545cd7`) passed all 12 jobs:
+GitHub Actions run 43134278516 (2026-11-12, commit `5652b04`) passed all 12 jobs:
 `ubuntu-latest`, `macos-latest` and `windows-latest`, with Nim 2.2.0 and
 2.2.10, under ARC and ORC. Each job ran all 32 `tests/**/test_*.nim` files
 through `tools/tester.nim` and compiled the showcase.

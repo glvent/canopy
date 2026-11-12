@@ -86,6 +86,6 @@ See [animation contracts](../animation.md) and the [executed validation record](
 - [x] Unicode-aware editing model, `TextInput` and `TextArea` with undo, selection and paste.
 - [x] Forms with validation timing, command palette, tree view and dialogs.
 - [x] Showcase Controls page, API docs, benchmarks, POSIX PTY and tmux checks.
-- [x] Native Windows console acceptance: CI run 43131953551 passed on `windows-latest`.
+- [x] Native Windows console acceptance: CI run 43134278516 passed on `windows-latest`.
 
 See [interaction contracts](../interaction.md) and the [executed validation record](../validation/interaction.md).
